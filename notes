@@ -1,0 +1,6 @@
+tcp_execute_command:
+	In c2600-ik9s-mz.123-22.bin, it's located at 0x8056C354 (according to the shellcode at 
+	http://www.securiteam.com/exploits/5RP0I20P5A.html).  This function does not contain any strings, but calls a function 
+	that do: sub_803D39B0 references "\n%%Not enough memory to save defaults.". tcp_execute_command is the 22 of 33 references
+	in the list of references to sub_803D39B0.  It also contains a reference to allocate_tty, when looking at the references of
+	allocate_tty, it's the fourth one.
