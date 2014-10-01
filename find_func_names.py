@@ -29,7 +29,7 @@ class FunctionInfo(object):
     self.end = GetFunctionAttr(address, FUNCATTR_END)
     self.strings = []
     self.calling_strings = []
-    self.called_funcs = None
+    self.called_funcs = []
 
   def __str__(self):
     return "%s(0x%08x-0x%08x)" % (self.name, self.start, self.end)
@@ -121,7 +121,7 @@ class CiscoFunctionFinder(object):
     for address in range(func.start, func.end, ADDR_WIDTH):
       if idaapi.is_call_insn(address):
         func_address = self.get_call_destination(address)
-        if func_address not in called_funcs:
+        if func_address != None and func_address not in called_funcs:
           called_funcs[func_address] = GetFunctionName(func_address)
           print "    %s calls %s (0x%08x) at 0x%08x" % (func.name, called_funcs[func_address], func_address, address)
       
@@ -218,7 +218,7 @@ class CiscoFunctionFinder(object):
 
   def get_call_destination(self, address):
     for x in XrefsFrom(address):
-      if x.to != address + ADDR_WIDTH: # filter out the reference to the next instruction
+      if GetFunctionAttr(x.to, FUNCATTR_START) != GetFunctionAttr(address, FUNCATTR_START): # filter out the reference to the next instruction
         return x.to                    # for some reason IDA thinks calls reference the next instruction
     return None
 
@@ -267,9 +267,6 @@ class CiscoFunctionFinder(object):
     return max(function_address.iteritems(), key=operator.itemgetter(1))
 
   def find_from_called_functions(self, func):
-    if func.called_funcs == None: #No calling functions were recorded
-      return None
-
     called_func_addresses = [] 
     for called_func in func.called_funcs:
       called_func_address = self.find_function(called_func)
